@@ -3,79 +3,137 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Service Booking API — демонстрация</title>
+  <title>Service Booking API — расписание мастерской</title>
   <style>
-    :root { color-scheme: light; font-family: Inter, Segoe UI, Arial, sans-serif; }
-    body { margin: 0; background: #f3f6fb; color: #18263b; }
-    header { background: #12243d; color: white; padding: 38px max(30px, calc((100vw - 1040px)/2)); }
-    header small { letter-spacing: .14em; color: #8ec5ff; font-weight: 700; }
-    h1 { margin: 10px 0 8px; font-size: 32px; }
-    header p { margin: 0; color: #c9d6e7; }
-    main { max-width: 1040px; margin: 34px auto; padding: 0 20px; }
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .card, .panel { background: white; border: 1px solid #e3e9f1; border-radius: 14px; box-shadow: 0 7px 22px #1b365008; }
-    .card { padding: 24px; }
-    .label { color: #6b7b90; font-size: 13px; }
-    .value { font-size: 32px; font-weight: 700; margin-top: 8px; }
-    .blue { color: #2366b6; } .green { color: #18825e; } .orange { color: #bc6a1c; }
-    .panel { margin-top: 22px; overflow: hidden; }
-    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; }
-    h2 { margin: 0; font-size: 19px; }
-    input { border: 1px solid #d8e1ed; border-radius: 8px; padding: 9px; font: inherit; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { text-align: left; padding: 15px 24px; border-top: 1px solid #edf1f6; }
-    th { background: #f8fafc; font-size: 12px; color: #65768a; text-transform: uppercase; }
-    .badge { background: #e9f3ff; color: #2366b6; border-radius: 999px; padding: 5px 10px; font-weight: 700; }
-    .note { color: #667990; margin: 17px 2px; line-height: 1.5; }
-    code { background: #e7edf6; padding: 2px 5px; border-radius: 4px; }
-    @media (max-width: 650px) { .cards { grid-template-columns: 1fr; } th,td { padding: 12px; } .panel-header { display: block; } input { margin-top: 12px; } }
+    :root { font-family: "Segoe UI", Arial, sans-serif; color: #26302b; background: #f3f0e8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .masthead { height: 55px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; background: #24342d; color: #f4f1e8; }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 12px; font-weight: 800; letter-spacing: .16em; }
+    .brand-mark { width: 21px; height: 21px; border: 5px solid #ec9a64; transform: rotate(45deg); }
+    .masthead-note { font-family: Consolas, monospace; font-size: 11px; letter-spacing: .06em; color: #b9c8b9; }
+    .layout { max-width: 1440px; min-height: calc(100vh - 55px); margin: auto; display: grid; grid-template-columns: 320px minmax(0, 1fr); }
+    aside { padding: 40px 32px; background: #e9e6da; border-right: 1px solid #d4d0c4; }
+    .eyebrow { color: #bd5b37; font-family: Consolas, monospace; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    aside h1 { font-size: 32px; line-height: 1.08; letter-spacing: -.045em; margin: 16px 0 18px; }
+    .intro { color: #647066; line-height: 1.55; font-size: 14px; margin: 0 0 38px; }
+    .section-title { color: #5c675d; font-family: Consolas, monospace; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; border-bottom: 1px solid #c9cabf; padding-bottom: 12px; margin-bottom: 4px; }
+    .service { display: flex; justify-content: space-between; gap: 12px; padding: 15px 0; border-bottom: 1px solid #d4d1c7; font-size: 14px; }
+    .service span:last-child { color: #777e72; font-family: Consolas, monospace; white-space: nowrap; }
+    .sidebar-bottom { margin-top: 50px; padding: 20px; background: #d9e3d5; border-left: 4px solid #476755; font-size: 12px; line-height: 1.5; }
+    .sidebar-bottom strong { display: block; font-size: 13px; margin-bottom: 6px; }
+    .workspace { min-width: 0; padding: 42px 54px 45px; }
+    .topline { display: flex; align-items: end; justify-content: space-between; gap: 25px; }
+    .topline h2 { font-size: 40px; letter-spacing: -.05em; margin: 12px 0 0; line-height: 1.1; }
+    .date-control { display: flex; flex-direction: column; gap: 9px; color: #667167; font-family: Consolas, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+    .date-control input { appearance: none; border: 1px solid #babfb4; background: #fbfaf5; color: #26302b; padding: 12px 14px; min-width: 178px; font: 600 15px "Segoe UI", Arial, sans-serif; border-radius: 2px; }
+    .summary { display: flex; gap: 0; align-items: center; margin: 35px 0 28px; border-top: 1px solid #c9c9bd; border-bottom: 1px solid #c9c9bd; }
+    .stat { display: flex; align-items: baseline; gap: 12px; padding: 19px 28px 19px 0; margin-right: 28px; border-right: 1px solid #c9c9bd; }
+    .stat:last-child { border-right: 0; }
+    .stat strong { color: #bd5b37; font-family: Georgia, serif; font-size: 31px; font-weight: 400; line-height: 1; }
+    .stat span { max-width: 120px; color: #667167; font-size: 12px; line-height: 1.35; }
+    .board { background: #faf9f4; border: 1px solid #d3d0c5; box-shadow: 9px 9px 0 #dcd8ca; }
+    .board-title { padding: 22px 26px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dedbd0; }
+    .board-title h3 { font-size: 18px; margin: 0; }
+    .board-title small { color: #788077; font-family: Consolas, monospace; font-size: 11px; }
+    .board-scroll { overflow-x: auto; padding: 0 26px 30px; }
+    .ruler, .lane { display: grid; grid-template-columns: 104px minmax(650px, 1fr); }
+    .ruler { height: 55px; align-items: end; padding-bottom: 10px; color: #7c8378; font-family: Consolas, monospace; font-size: 11px; }
+    .ticks { display: flex; justify-content: space-between; transform: translateX(-1px); }
+    .ticks span:last-child { transform: translateX(-100%); }
+    .lane { min-height: 118px; align-items: stretch; border-top: 1px solid #dcded4; }
+    .lane-label { padding-top: 22px; }
+    .lane-label strong { display: block; font-size: 15px; }
+    .lane-label span { display: block; color: #8b9388; font-family: Consolas, monospace; font-size: 11px; margin-top: 7px; }
+    .track { position: relative; margin: 13px 0; background: repeating-linear-gradient(to right, transparent 0, transparent calc(11.111% - 1px), #e4e5dc calc(11.111% - 1px), #e4e5dc 11.111%); }
+    .appointment { position: absolute; top: 12px; min-width: 68px; height: 68px; padding: 10px 7px; background: #eec4a6; border-left: 5px solid #c25c37; overflow: hidden; white-space: nowrap; }
+    .lane:nth-child(2) .appointment { background: #c9d9c5; border-left-color: #4d755d; }
+    .appointment b { display: block; font-family: Consolas, monospace; font-size: 13px; }
+    .appointment span { display: block; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; font-size: 11px; }
+    .appointment em { display: block; color: #5c655c; font-size: 10px; font-style: normal; margin-top: 2px; }
+    .empty { color: #9aa198; font-size: 12px; padding-top: 30px; }
+    .note { margin-top: 34px; max-width: 690px; color: #667167; font-size: 13px; line-height: 1.6; }
+    code { font-family: Consolas, monospace; color: #345948; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } aside { padding: 28px; } aside h1 { max-width: 460px; } .intro { margin-bottom: 22px; } .sidebar-bottom { margin-top: 22px; } .workspace { padding: 30px 22px; } }
+    @media (max-width: 560px) { .masthead { padding: 0 18px; } .masthead-note { display: none; } .topline { display: block; } .topline h2 { font-size: 33px; margin-bottom: 22px; } .summary { gap: 10px; } .stat { display: block; padding-right: 10px; margin-right: 0; flex: 1; } .stat strong { display: block; margin-bottom: 4px; } .stat span { display: block; font-size: 11px; } .board-scroll { padding: 0 16px 24px; } }
   </style>
 </head>
 <body>
-  <header><small>ASP.NET CORE 8 · C# · REST API</small><h1>Запись на услуги без пересечений</h1><p>Два поста · автоматическое назначение · буфер 15 минут · сохранение данных</p></header>
-  <main>
-    <div class="cards">
-      <div class="card"><div class="label">Услуг в каталоге</div><div id="services-count" class="value blue">—</div></div>
-      <div class="card"><div class="label">Записей на выбранный день</div><div id="bookings-count" class="value green">—</div></div>
-      <div class="card"><div class="label">Постов в мастерской</div><div class="value orange">2</div></div>
-    </div>
-    <section class="panel"><div class="panel-header"><h2>Записи</h2><label>Дата: <input id="date" type="date" value="2026-10-19"></label></div>
-      <table><thead><tr><th>Время · Томск</th><th>Клиент</th><th>Услуга</th><th>Пост</th></tr></thead><tbody id="rows"></tbody></table>
-    </section>
-    <p class="note">Данные на этой странице приходят из <code>GET /services</code> и <code>GET /bookings?date=…</code>. Создание, перенос и отмена доступны через REST API. Демонстрационные идентификаторы клиентов вымышлены.</p>
-  </main>
+  <div class="masthead"><div class="brand"><span class="brand-mark" aria-hidden="true"></span> SERVICE / BOARD</div><span class="masthead-note">ASP.NET CORE 8 · C# · REST API</span></div>
+  <div class="layout">
+    <aside>
+      <div class="eyebrow">Демонстрация backend</div>
+      <h1>Запись без накладок.</h1>
+      <p class="intro">Сервис распределяет записи между двумя постами и оставляет 15 минут между работами.</p>
+      <div class="section-title">Услуги мастерской</div>
+      <div id="services"></div>
+      <div class="sidebar-bottom"><strong>Как это работает</strong>Время, длительность услуги и занятость каждого поста проверяются при создании и переносе записи. Если мест нет, API возвращает HTTP 409.</div>
+    </aside>
+    <main class="workspace">
+      <div class="topline"><div><div class="eyebrow">Мастерская / расписание</div><h2>План на день</h2></div><label class="date-control">Выберите дату<input id="date" type="date" value="2026-10-19"></label></div>
+      <div class="summary"><div class="stat"><strong id="bookings-count">—</strong><span>записи на выбранный день</span></div><div class="stat"><strong>2</strong><span>рабочих поста</span></div><div class="stat"><strong>15</strong><span>минут между записями</span></div></div>
+      <section class="board" aria-label="Расписание постов"><div class="board-title"><h3>Загрузка постов</h3><small>09:00—18:00 · UTC+7</small></div><div class="board-scroll"><div class="ruler"><span>ПОСТ</span><div class="ticks" id="ticks"></div></div><div id="lanes"></div></div></section>
+      <p class="note">План обновляется данными из <code>GET /services</code> и <code>GET /bookings?date=…</code>. Создание, перенос и отмена доступны через REST API. Идентификаторы клиентов здесь вымышлены.</p>
+    </main>
+  </div>
   <script>
-    const date = document.querySelector('#date');
-    const rows = document.querySelector('#rows');
-    const names = new Map();
+    const dateInput = document.querySelector('#date');
+    const serviceList = document.querySelector('#services');
+    const lanes = document.querySelector('#lanes');
+    const ticks = document.querySelector('#ticks');
+    const serviceNames = new Map();
+    for (let hour = 9; hour <= 18; hour++) {
+      const mark = document.createElement('span');
+      mark.textContent = String(hour).padStart(2, '0') + ':00';
+      ticks.append(mark);
+    }
+    function node(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    }
     async function load() {
       try {
         const [servicesResponse, bookingsResponse] = await Promise.all([
-          fetch('/services'), fetch('/bookings?date=' + encodeURIComponent(date.value))
+          fetch('/services'), fetch('/bookings?date=' + encodeURIComponent(dateInput.value))
         ]);
         if (!servicesResponse.ok || !bookingsResponse.ok) throw new Error('API недоступен');
-        const services = await servicesResponse.json();
-        const bookings = await bookingsResponse.json();
-        services.forEach(s => names.set(s.code, s.name));
-        document.querySelector('#services-count').textContent = String(services.length);
+        const [services, bookings] = await Promise.all([servicesResponse.json(), bookingsResponse.json()]);
+        serviceList.replaceChildren();
+        services.forEach(service => {
+          serviceNames.set(service.code, service.name);
+          const row = node('div', 'service');
+          row.append(node('span', '', service.name), node('span', '', service.minutes + ' мин'));
+          serviceList.append(row);
+        });
         document.querySelector('#bookings-count').textContent = String(bookings.length);
-        rows.replaceChildren();
-        for (const booking of bookings) {
-          const tr = document.createElement('tr');
-          const values = [booking.startsAt.slice(11, 16) + '–' + booking.endsAt.slice(11, 16),
-            booking.customerRef, names.get(booking.serviceCode) ?? booking.serviceCode, String(booking.bay)];
-          values.forEach((value, index) => {
-            const td = document.createElement('td');
-            if (index === 3) { const span = document.createElement('span'); span.className = 'badge'; span.textContent = value; td.append(span); }
-            else td.textContent = value;
-            tr.append(td);
-          });
-          rows.append(tr);
+        lanes.replaceChildren();
+        for (let bay = 1; bay <= 2; bay++) {
+          const lane = node('div', 'lane');
+          const label = node('div', 'lane-label');
+          label.append(node('strong', '', 'Пост ' + String(bay)), node('span', '', bay === 1 ? 'BAY / 01' : 'BAY / 02'));
+          const track = node('div', 'track');
+          const assigned = bookings.filter(booking => booking.bay === bay);
+          for (const booking of assigned) {
+            const start = booking.startsAt.slice(11, 16);
+            const end = booking.endsAt.slice(11, 16);
+            const startMinute = Number(start.slice(0, 2)) * 60 + Number(start.slice(3));
+            const endMinute = Number(end.slice(0, 2)) * 60 + Number(end.slice(3));
+            const card = node('div', 'appointment');
+            card.style.left = ((startMinute - 540) / 540 * 100) + '%';
+            card.style.width = ((endMinute - startMinute) / 540 * 100) + '%';
+            card.title = `${start}–${end} · ${booking.customerRef} · ${serviceNames.get(booking.serviceCode) ?? booking.serviceCode}`;
+            card.append(node('b', '', start), node('span', '', booking.customerRef), node('em', '', serviceNames.get(booking.serviceCode) ?? booking.serviceCode));
+            track.append(card);
+          }
+          if (!assigned.length) track.append(node('div', 'empty', 'Свободен весь день'));
+          lane.append(label, track);
+          lanes.append(lane);
         }
-        if (!bookings.length) { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 4; td.textContent = 'Записей нет'; tr.append(td); rows.append(tr); }
-      } catch (error) { rows.textContent = error.message; }
+      } catch (error) { lanes.replaceChildren(node('p', 'empty', error.message)); }
     }
-    date.addEventListener('change', load);
+    dateInput.addEventListener('change', load);
     load();
   </script>
 </body>
