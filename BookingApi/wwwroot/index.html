@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Service Booking API — демонстрация</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, Segoe UI, Arial, sans-serif; }
+    body { margin: 0; background: #f3f6fb; color: #18263b; }
+    header { background: #12243d; color: white; padding: 38px max(30px, calc((100vw - 1040px)/2)); }
+    header small { letter-spacing: .14em; color: #8ec5ff; font-weight: 700; }
+    h1 { margin: 10px 0 8px; font-size: 32px; }
+    header p { margin: 0; color: #c9d6e7; }
+    main { max-width: 1040px; margin: 34px auto; padding: 0 20px; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card, .panel { background: white; border: 1px solid #e3e9f1; border-radius: 14px; box-shadow: 0 7px 22px #1b365008; }
+    .card { padding: 24px; }
+    .label { color: #6b7b90; font-size: 13px; }
+    .value { font-size: 32px; font-weight: 700; margin-top: 8px; }
+    .blue { color: #2366b6; } .green { color: #18825e; } .orange { color: #bc6a1c; }
+    .panel { margin-top: 22px; overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; }
+    h2 { margin: 0; font-size: 19px; }
+    input { border: 1px solid #d8e1ed; border-radius: 8px; padding: 9px; font: inherit; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { text-align: left; padding: 15px 24px; border-top: 1px solid #edf1f6; }
+    th { background: #f8fafc; font-size: 12px; color: #65768a; text-transform: uppercase; }
+    .badge { background: #e9f3ff; color: #2366b6; border-radius: 999px; padding: 5px 10px; font-weight: 700; }
+    .note { color: #667990; margin: 17px 2px; line-height: 1.5; }
+    code { background: #e7edf6; padding: 2px 5px; border-radius: 4px; }
+    @media (max-width: 650px) { .cards { grid-template-columns: 1fr; } th,td { padding: 12px; } .panel-header { display: block; } input { margin-top: 12px; } }
+  </style>
+</head>
+<body>
+  <header><small>ASP.NET CORE 8 · C# · REST API</small><h1>Запись на услуги без пересечений</h1><p>Два поста · автоматическое назначение · буфер 15 минут · сохранение данных</p></header>
+  <main>
+    <div class="cards">
+      <div class="card"><div class="label">Услуг в каталоге</div><div id="services-count" class="value blue">—</div></div>
+      <div class="card"><div class="label">Записей на выбранный день</div><div id="bookings-count" class="value green">—</div></div>
+      <div class="card"><div class="label">Постов в мастерской</div><div class="value orange">2</div></div>
+    </div>
+    <section class="panel"><div class="panel-header"><h2>Записи</h2><label>Дата: <input id="date" type="date" value="2026-10-19"></label></div>
+      <table><thead><tr><th>Время · Томск</th><th>Клиент</th><th>Услуга</th><th>Пост</th></tr></thead><tbody id="rows"></tbody></table>
+    </section>
+    <p class="note">Данные на этой странице приходят из <code>GET /services</code> и <code>GET /bookings?date=…</code>. Создание, перенос и отмена доступны через REST API. Демонстрационные идентификаторы клиентов вымышлены.</p>
+  </main>
+  <script>
+    const date = document.querySelector('#date');
+    const rows = document.querySelector('#rows');
+    const names = new Map();
+    async function load() {
+      try {
+        const [servicesResponse, bookingsResponse] = await Promise.all([
+          fetch('/services'), fetch('/bookings?date=' + encodeURIComponent(date.value))
+        ]);
+        if (!servicesResponse.ok || !bookingsResponse.ok) throw new Error('API недоступен');
+        const services = await servicesResponse.json();
+        const bookings = await bookingsResponse.json();
+        services.forEach(s => names.set(s.code, s.name));
+        document.querySelector('#services-count').textContent = String(services.length);
+        document.querySelector('#bookings-count').textContent = String(bookings.length);
+        rows.replaceChildren();
+        for (const booking of bookings) {
+          const tr = document.createElement('tr');
+          const values = [booking.startsAt.slice(11, 16) + '–' + booking.endsAt.slice(11, 16),
+            booking.customerRef, names.get(booking.serviceCode) ?? booking.serviceCode, String(booking.bay)];
+          values.forEach((value, index) => {
+            const td = document.createElement('td');
+            if (index === 3) { const span = document.createElement('span'); span.className = 'badge'; span.textContent = value; td.append(span); }
+            else td.textContent = value;
+            tr.append(td);
+          });
+          rows.append(tr);
+        }
+        if (!bookings.length) { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 4; td.textContent = 'Записей нет'; tr.append(td); rows.append(tr); }
+      } catch (error) { rows.textContent = error.message; }
+    }
+    date.addEventListener('change', load);
+    load();
+  </script>
+</body>
+</html>
